@@ -1,0 +1,15 @@
+{
+  "name": "vivafit-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "admin-web",
+    "shared"
+  ],
+  "scripts": {
+    "mobile": "cd mobile && expo start",
+    "admin-web": "cd admin-web && npm run dev",
+    "shared:build": "cd shared && npm run build"
+  }
+}

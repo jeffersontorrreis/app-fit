@@ -1,0 +1,33 @@
+message: If you use VivaFit in your research or project, please cite it using the metadata from this file.
+title: VivaFit
+authors:
+  - family-names: Braz de Oliveira
+    given-names: Aline Cristina
+  - family-names: Ribeiro Paim
+    given-names: Darly 
+  - family-names: Mariano Lopes da Costa
+    given-names: Erick Alexandre
+  - family-names: Torres do Patrocinio
+    given-names: Jefferson
+  - family-names: Miranda Leite
+    given-names: José Carlos
+  - family-names: Resende Greco Madeira Silva
+    given-names: Maria Luisa
+  - name-suffix: Professor
+    affiliation: PUC Minas
+    family-names: Macêdo Neto
+    given-names: Cristiano
+keywords:
+  - fitness
+  - saude
+  - academia
+  - treino
+  - exercicios
+  - mobile-app
+  - wellness
+  - ods3
+  - saude-e-bem-estar
+  - planejamento-treino
+repository-code: https://github.com/ICEI-PUC-Minas-PMV-ADS/pmv-ads-2026-01-e3-projvivafit
+version: 1.0.0
+date-released: 2023-10-31

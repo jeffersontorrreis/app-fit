@@ -1,0 +1,182 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Funções auxiliares ────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+
+    // Verifica se o usuário autenticado é um professor ativo
+    function isActiveProfessor() {
+      let me = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return me.role == 'PROFESSOR' && me.status == 'ATIVO';
+    }
+
+    function isStatusField() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'role', 'approvedBy', 'approvedAt']);
+    }
+
+    // ─── Coleção: users ────────────────────────────────────────────
+    match /users/{uid} {
+      // Leitura:
+      //   - próprio usuário
+      //   - admin
+      //   - qualquer logado pode ver perfis de PROFESSOR (para listagem)
+      //   - professor ativo pode ver perfis de qualquer aluno (para detalhe do aluno)
+      allow read: if isSignedIn() && (
+        isOwner(uid) ||
+        isAdmin() ||
+        resource.data.role == 'PROFESSOR' ||
+        isActiveProfessor()
+      );
+
+      // Criação: somente o próprio usuário (no cadastro)
+      allow create: if isSignedIn() && isOwner(uid);
+
+      // Atualização:
+      //   - Admin pode atualizar qualquer campo
+      //   - Usuário comum pode atualizar apenas campos não-sensíveis
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (isOwner(uid) && !isStatusField())
+      );
+
+      // Deleção: somente admin
+      allow delete: if isAdmin();
+    }
+
+    // ─── Coleção: professorRequests ────────────────────────────────
+    // Solicitações de alunos para professores.
+    match /professorRequests/{requestId} {
+      // Aluno cria a solicitação (só pode criar com seu próprio UID)
+      allow create: if isSignedIn() && request.resource.data.alunoUid == request.auth.uid;
+
+      // Leitura: aluno que enviou OU professor destinatário OU admin
+      allow read: if isSignedIn() && (
+        resource.data.alunoUid == request.auth.uid ||
+        resource.data.professorUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Atualização: somente o professor destinatário (aceitar/recusar) ou admin
+      allow update: if isSignedIn() && (
+        resource.data.professorUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── Coleção: studentEvaluations ──────────────────────────────
+    // Avaliações físicas criadas pelo professor para o aluno.
+    match /studentEvaluations/{evalId} {
+      // Criação: somente o professor que está avaliando
+      allow create: if isSignedIn() && request.resource.data.professorUid == request.auth.uid;
+
+      // Leitura: o aluno avaliado OU o professor que avaliou OU admin
+      allow read: if isSignedIn() && (
+        resource.data.alunoUid == request.auth.uid ||
+        resource.data.professorUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Atualização: somente o professor que criou
+      allow update: if isSignedIn() && resource.data.professorUid == request.auth.uid;
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── Coleção: trainingPlans ────────────────────────────────────
+    // Planos de treino criados pelo professor para alunos específicos.
+    match /trainingPlans/{planId} {
+      // Criação: somente o professor (professorUid == seu próprio UID)
+      allow create: if isSignedIn() && request.resource.data.professorUid == request.auth.uid;
+
+      // Leitura:
+      //   - O aluno dono do plano (alunoUid == auth.uid)
+      //   - O professor que criou (professorUid == auth.uid)
+      //   - Admin
+      allow read: if isSignedIn() && (
+        resource.data.alunoUid == request.auth.uid ||
+        resource.data.professorUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Atualização: somente o professor que criou
+      allow update: if isSignedIn() && resource.data.professorUid == request.auth.uid;
+
+      // Deleção: professor que criou ou admin
+      allow delete: if isSignedIn() && (
+        resource.data.professorUid == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // ─── Coleção: professorDocuments ──────────────────────────────
+    // Foto do documento (CNH/RG) do professor — em coleção separada
+    // para não estourar o limite de 1MB do perfil.
+    match /professorDocuments/{uid} {
+      // Criação/atualização: somente o próprio professor (no cadastro)
+      allow create, update: if isSignedIn() && isOwner(uid);
+
+      // Leitura: o próprio professor ou admin
+      allow read: if isSignedIn() && (isOwner(uid) || isAdmin());
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── Coleção: workoutSessions ──────────────────────────────────
+    // Sessões de treino registradas pelo aluno no WorkoutLog.
+    match /workoutSessions/{sessionId} {
+      // Aluno cria sua própria sessão
+      allow create: if isSignedIn() && request.resource.data.user.uid == request.auth.uid;
+
+      // Leitura: o próprio aluno ou admin
+      allow read: if isSignedIn() && (
+        resource.data.user.uid == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Atualização/deleção: apenas admin
+      allow update, delete: if isAdmin();
+    }
+
+    // ─── Coleção: exercises ───────────────────────────────────────
+    // Catálogo de exercícios usado no app mobile.
+    match /exercises/{exerciseId} {
+      // Qualquer usuário autenticado pode listar/consultar catálogo.
+      allow read: if isSignedIn();
+
+      // Mantido aberto para usuários autenticados para preservar comportamento atual da tela.
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // ─── Coleção: bodyWeightEntries ───────────────────────────────
+    // Histórico de peso corporal por usuário.
+    match /bodyWeightEntries/{entryId} {
+      // Usuário só cria para si mesmo.
+      allow create: if isSignedIn() && request.resource.data.user_uid == request.auth.uid;
+
+      // Leitura/edição/remoção: dono ou admin.
+      allow read, update, delete: if isSignedIn() && (
+        resource.data.user_uid == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // ─── Bloqueia todo o resto ─────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

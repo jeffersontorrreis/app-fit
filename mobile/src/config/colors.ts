@@ -1,0 +1,48 @@
+export const lightTheme = {
+  primary: '#12F77A',
+  primaryDark: '#08C15D',
+  primaryLight: '#59FF9E',
+  secondary: '#EFFF00',
+  secondaryLight: '#F5FF5A',
+  background: '#FFFFFF',
+  surface: '#F7F7F7',
+  surfaceVariant: '#F0F0F0',
+  text: '#050505',
+  textSecondary: '#303030',
+  textTertiary: '#747474',
+  textInverse: '#050505',
+  border: '#D7D7D7',
+  divider: '#EAEAEA',
+  success: '#00C896',
+  warning: '#EFFF00',
+  error: '#FF4444',
+  info: '#2196F3',
+  placeholder: '#8A8A8A',
+  disabled: '#CFCFCF',
+};
+
+export const darkTheme = {
+  primary: '#12F77A',
+  primaryDark: '#08C15D',
+  primaryLight: '#59FF9E',
+  secondary: '#EFFF00',
+  secondaryLight: '#F5FF5A',
+  background: '#111216',
+  surface: '#1A1C22',
+  surfaceVariant: '#252933',
+  text: '#FFFFFF',
+  textSecondary: '#CCCCCC',
+  textTertiary: '#999999',
+  textInverse: '#000000',
+  border: '#2E3340',
+  divider: '#242833',
+  success: '#00C896',
+  warning: '#EFFF00',
+  error: '#FF4444',
+  info: '#2196F3',
+  placeholder: '#6D7587',
+  disabled: '#4A5162',
+};
+
+export type AppTheme = typeof darkTheme;
+export type ThemeMode = 'light' | 'dark';

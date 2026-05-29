@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap');
+
+:root {
+	--bg: #050a12;
+	--surface: #111824;
+	--surface-soft: #141d2b;
+	--card: #0f1724;
+	--border: #213041;
+	--text: #e8f0fa;
+	--text-soft: #9caac0;
+	--brand: #20eb83;
+	--brand-strong: #0fcb6a;
+	--danger: #ff4d57;
+	--warning: #f6c54e;
+	--shadow: 0 12px 36px rgba(2, 10, 24, 0.45);
+}
+
+[data-theme='light'] {
+	--bg: #edf2f8;
+	--surface: #ffffff;
+	--surface-soft: #f4f8ff;
+	--card: #ffffff;
+	--border: #d3deeb;
+	--text: #0f1f35;
+	--text-soft: #5c6f8c;
+	--brand: #1bd678;
+	--brand-strong: #11b361;
+	--danger: #e03743;
+	--warning: #b88300;
+	--shadow: 0 12px 30px rgba(12, 26, 48, 0.12);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	min-height: 100%;
+}
+
+body {
+	font-family: 'Sora', system-ui, -apple-system, sans-serif;
+	background: radial-gradient(circle at 15% 10%, rgba(32, 235, 131, 0.2), transparent 35%),
+		radial-gradient(circle at 80% 0%, rgba(36, 91, 255, 0.3), transparent 30%),
+		var(--bg);
+	color: var(--text);
+}
